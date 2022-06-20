@@ -5,6 +5,8 @@ sudo git clone https://github.com/Gurguii/Practice-Regular-Expressions
 # Get into downloaded directory  
 cd Practice-Regular-Expressions  
 
+![imagen](https://user-images.githubusercontent.com/101645735/174600670-cbc80d28-a480-4d60-a17a-a684a58a7848.png)
+
 # Execute regex.sh with the downloaded rules (re_rules)
 Example => bash regex.sh re_rules  
 Note: As you might notice it takes a file as its only argument, feel free to use your own regex files. As long as it's 1 rule per line, everything should be fine.  
