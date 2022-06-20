@@ -38,10 +38,8 @@ function saveFile()
     continue
   done
 }
-if [[ -z $1 ]]; then
-  printf "How to use: bash %s <regex-file>\n" "$0"
-  exit 0
-fi
+[[ -z $1 ]] && printf "How to use: bash %s <regex-file>\n" "$0" && exit 0
+[[ ! -e $1 ]] && printf "[!] File %s doesn't exist\n[!] Exiting...\n" "$1" && exit 0
 len=`<$1 wc -l`
 rules=(`<$1`)
 used_re=""
@@ -67,16 +65,21 @@ while true; do
   fi
   if [[ $check =~ $current_rule ]]; then
     read -p "Well done¡"
-    randomRegex
-    used_re+="$randN "
     let rightAns+=1
-    if (( $rightAns == $len )); then
+    used_re+="$randN "
+    if (( $rightAns == $len && ${#wrongRules} > 0)); then
       printf "[!] All rules correctly answered\nsave mistakes? y/n: "
       read -r ans
       if [[ ${ans,,} == "y" || ${ans,,} == "yes" ]]; then
         saveFile
+        exit 0
       fi
     fi
+    if (( $rightAns == $len )); then
+      printf "[!] All rules correctly answered without any mistake, you rock¡\n"
+      exit 0
+    fi
+    randomRegex
     continue
   fi
   read -p "[!] Nope"
