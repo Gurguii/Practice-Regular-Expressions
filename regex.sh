@@ -1,9 +1,9 @@
 #!/bin/bash
 function randomRegex()
 {
-  randN=$(( $RANDOM % $len + 0))
-  while [[ $(echo $used_re | grep $randN) || (($randN == $current_rule_n)) ]]; do
-    randN=$(( $RANDOM % $len + 0 ))
+  randN=$(( RANDOM % len + 0))
+  while [[ $(! echo "$used_re" | grep -q "$randN") || (("$randN" == "$current_rule_n")) ]]; do
+    randN=$(( RANDOM % len + 0 ))
   done
   current_rule=${rules[$randN]}
   current_rule_n=$randN
@@ -18,19 +18,19 @@ function saveFile()
     fi
     if [[ ! -e $file ]]; then
       for mistaken in $wrongRules; do
-        echo "$mistaken" >> $file
+        echo "$mistaken" >> "$file"
       done
       printf "[!] Done, file saved at %s\n" "$file"
       exit 0
     fi
-    printf "File %s already exists\nappend new mistaken rules? y/n: "
+    printf "File %s already exists\nappend new mistaken rules? y/n: " "$file"
     read -r ans
     if [[ ${ans,,} == "y" || ${ans,,} == "yes" ]]; then
       for mistaken in $wrongRules; do
         echo "$mistaken" >> "$file"
       done
       sort "$file" | uniq >> ".temp"
-      rm $file
+      rm "$file"
       mv ".temp" "$file"
       printf "[!] Done, file saved at %s\n" "$file"
       exit 0
@@ -40,8 +40,8 @@ function saveFile()
 }
 [[ -z $1 ]] && printf "How to use: bash %s <regex-file>\n" "$0" && exit 0
 [[ ! -e $1 ]] && printf "[!] File %s doesn't exist\n[!] Exiting...\n" "$1" && exit 0
-len=`<$1 wc -l`
-rules=(`<$1`)
+len=$(<"$1" wc -l)
+mapfile rules < "$1"
 used_re=""
 rightAns=0
 wrongAns=0
@@ -49,8 +49,7 @@ wrongRules=""
 randomRegex
 while true; do
   clear
-  printf "Rule => %s\nright: %s   wrong: %s   change: 'n'    save: 's'    exit: 'q'\n" "$current_rule" "$rightAns" "$wrongAns"
-  printf "Check: "
+  printf "\nRule => %s\nright: %s   wrong: %s   change: 'n'    save: 's'    exit: 'q'\nCheck: " "$current_rule" "$rightAns" "$wrongAns"
   read -r check
   if [[ ${check,,} == "n" ]]; then
     randomRegex
@@ -64,10 +63,11 @@ while true; do
     exit 0
   fi
   if [[ $check =~ $current_rule ]]; then
-    read -p "Well done¡"
-    let rightAns+=1
+    printf "Well done!\n"
+    read -r
+    ((rightAns+=1))
     used_re+="$randN "
-    if (( $rightAns == $len && ${#wrongRules} > 0)); then
+    if (( rightAns == len && ${#wrongRules} > 0)); then
       printf "[!] All rules correctly answered\nsave mistakes? y/n: "
       read -r ans
       if [[ ${ans,,} == "y" || ${ans,,} == "yes" ]]; then
@@ -75,16 +75,17 @@ while true; do
         exit 0
       fi
     fi
-    if (( $rightAns == $len )); then
+    if (( rightAns == len )); then
       printf "[!] All rules correctly answered without any mistake, you rock¡\n"
       exit 0
     fi
     randomRegex
     continue
   fi
-  read -p "[!] Nope"
-  if [[ ! $(echo $wrongRules | grep $current_rule) ]]; then
+  printf "[!] Nope\n"
+  read -r
+  if ! echo "$wrongRules" | grep -q $current_rule ; then
     wrongRules+="$current_rule "
   fi
-  let wrongAns+=1
+  ((wrongAns+=1))
 done
